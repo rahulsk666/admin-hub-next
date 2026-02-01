@@ -7,11 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-  __InternalSupabase: {
-    PostgrestVersion: "14.1"
-  }
   graphql_public: {
     Tables: {
       [_ in never]: never
@@ -47,6 +42,7 @@ export type Database = {
           photo_url: string | null
           reported_at: string | null
           trip_id: string | null
+          updated_at: string | null
           user_id: string | null
         }
         Insert: {
@@ -56,6 +52,7 @@ export type Database = {
           photo_url?: string | null
           reported_at?: string | null
           trip_id?: string | null
+          updated_at?: string | null
           user_id?: string | null
         }
         Update: {
@@ -65,6 +62,7 @@ export type Database = {
           photo_url?: string | null
           reported_at?: string | null
           trip_id?: string | null
+          updated_at?: string | null
           user_id?: string | null
         }
         Relationships: [
@@ -91,6 +89,7 @@ export type Database = {
           id: string
           max_users: number | null
           name: string
+          updated_at: string | null
         }
         Insert: {
           address?: string | null
@@ -98,6 +97,7 @@ export type Database = {
           id?: string
           max_users?: number | null
           name: string
+          updated_at?: string | null
         }
         Update: {
           address?: string | null
@@ -105,6 +105,7 @@ export type Database = {
           id?: string
           max_users?: number | null
           name?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -115,6 +116,7 @@ export type Database = {
           longitude: number | null
           recorded_at: string | null
           trip_id: string | null
+          updated_at: string | null
         }
         Insert: {
           id?: number
@@ -122,6 +124,7 @@ export type Database = {
           longitude?: number | null
           recorded_at?: string | null
           trip_id?: string | null
+          updated_at?: string | null
         }
         Update: {
           id?: number
@@ -129,6 +132,7 @@ export type Database = {
           longitude?: number | null
           recorded_at?: string | null
           trip_id?: string | null
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -148,6 +152,7 @@ export type Database = {
           id: string
           receipt_url: string
           trip_id: string | null
+          updated_at: string | null
           user_id: string | null
         }
         Insert: {
@@ -157,6 +162,7 @@ export type Database = {
           id?: string
           receipt_url: string
           trip_id?: string | null
+          updated_at?: string | null
           user_id?: string | null
         }
         Update: {
@@ -166,6 +172,7 @@ export type Database = {
           id?: string
           receipt_url?: string
           trip_id?: string | null
+          updated_at?: string | null
           user_id?: string | null
         }
         Relationships: [
@@ -221,6 +228,7 @@ export type Database = {
           start_time: string | null
           status: string | null
           trip_date: string
+          updated_at: string | null
           user_id: string | null
           vehicle_id: string | null
         }
@@ -235,6 +243,7 @@ export type Database = {
           start_time?: string | null
           status?: string | null
           trip_date: string
+          updated_at?: string | null
           user_id?: string | null
           vehicle_id?: string | null
         }
@@ -249,6 +258,7 @@ export type Database = {
           start_time?: string | null
           status?: string | null
           trip_date?: string
+          updated_at?: string | null
           user_id?: string | null
           vehicle_id?: string | null
         }
@@ -279,6 +289,7 @@ export type Database = {
           name: string
           phone: string | null
           role: string
+          updated_at: string | null
         }
         Insert: {
           company_id?: string | null
@@ -289,6 +300,7 @@ export type Database = {
           name: string
           phone?: string | null
           role?: string
+          updated_at?: string | null
         }
         Update: {
           company_id?: string | null
@@ -299,6 +311,7 @@ export type Database = {
           name?: string
           phone?: string | null
           role?: string
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -317,6 +330,7 @@ export type Database = {
           photo_url: string
           taken_at: string | null
           trip_id: string | null
+          updated_at: string | null
         }
         Insert: {
           id?: string
@@ -324,6 +338,7 @@ export type Database = {
           photo_url: string
           taken_at?: string | null
           trip_id?: string | null
+          updated_at?: string | null
         }
         Update: {
           id?: string
@@ -331,6 +346,7 @@ export type Database = {
           photo_url?: string
           taken_at?: string | null
           trip_id?: string | null
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -345,22 +361,28 @@ export type Database = {
       vehicles: {
         Row: {
           company_id: string | null
+          created_at: string | null
           id: string
           is_active: boolean | null
+          updated_at: string | null
           vehicle_number: string
           vehicle_type: string | null
         }
         Insert: {
           company_id?: string | null
+          created_at?: string | null
           id?: string
           is_active?: boolean | null
+          updated_at?: string | null
           vehicle_number: string
           vehicle_type?: string | null
         }
         Update: {
           company_id?: string | null
+          created_at?: string | null
           id?: string
           is_active?: boolean | null
+          updated_at?: string | null
           vehicle_number?: string
           vehicle_type?: string | null
         }
@@ -376,30 +398,36 @@ export type Database = {
       }
       work_sessions: {
         Row: {
+          created_at: string | null
           end_time: string | null
           id: string
           location: unknown
           notes: string | null
           start_time: string
           trip_id: string | null
+          updated_at: string | null
           user_id: string | null
         }
         Insert: {
+          created_at?: string | null
           end_time?: string | null
           id?: string
           location?: unknown
           notes?: string | null
           start_time: string
           trip_id?: string | null
+          updated_at?: string | null
           user_id?: string | null
         }
         Update: {
+          created_at?: string | null
           end_time?: string | null
           id?: string
           location?: unknown
           notes?: string | null
           start_time?: string
           trip_id?: string | null
+          updated_at?: string | null
           user_id?: string | null
         }
         Relationships: [
@@ -1500,3 +1528,4 @@ export const Constants = {
     Enums: {},
   },
 } as const
+
