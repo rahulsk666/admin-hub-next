@@ -19,9 +19,10 @@ create table companies (
 -- Users (extends auth.users)
 -- =====================================================
 create table users (
-  id uuid primary key references auth.users(id) on delete cascade,
+  id uuid primary key default gen_random_uuid(),
   company_id uuid references companies(id) on delete cascade,
   name text not null,
+  email text unique not null,
   phone text,
   role text check (role in ('ADMIN', 'EMPLOYEE')) not null default 'EMPLOYEE',
   is_active boolean default true,

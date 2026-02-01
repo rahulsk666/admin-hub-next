@@ -10,6 +10,7 @@ interface Profile {
   id: string;
   name: string;
   phone: string | null;
+  email: string;
 }
 
 export default function Settings() {
@@ -28,13 +29,13 @@ export default function Settings() {
       if (!user) return;
 
       const { data, error } = await supabase
-        .from("profiles")
+        .from("users")
         .select("*")
-        .eq("id", user.id)
+        .eq("email", user.email)
         .maybeSingle();
 
       if (error) throw error;
-      
+
       if (data) {
         setProfile(data);
         setFormData({ name: data.name, phone: data.phone || "" });
@@ -54,15 +55,15 @@ export default function Settings() {
     setSaving(true);
     try {
       const { error } = await supabase
-        .from("profiles")
+        .from("users")
         .update({
           name: formData.name,
           phone: formData.phone || null,
         })
-        .eq("id", profile.id);
+        .eq("email", profile.email);
 
       if (error) throw error;
-      
+
       toast.success("Profile updated successfully");
       fetchProfile();
     } catch (error) {

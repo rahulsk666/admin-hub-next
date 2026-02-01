@@ -39,7 +39,7 @@ export default function Dashboard() {
           { count: receiptCount },
           { data: tripsData }
         ] = await Promise.all([
-          supabase.from("profiles").select("*", { count: "exact", head: true }),
+          supabase.from("users").select("*", { count: "exact", head: true }).eq("is_active", true).eq("role", "EMPLOYEE"),
           supabase.from("vehicles").select("*", { count: "exact", head: true }).eq("is_active", true),
           supabase.from("trips").select("*", { count: "exact", head: true }).eq("status", "STARTED"),
           supabase.from("receipts").select("*", { count: "exact", head: true }),
@@ -84,13 +84,13 @@ export default function Dashboard() {
           title="Total Employees"
           value={stats.totalEmployees}
           icon={Users}
-          trend={{ value: 12, isPositive: true }}
+        // trend={{ value: 12, isPositive: true }}
         />
         <StatCard
           title="Active Vehicles"
           value={stats.activeVehicles}
           icon={Car}
-          trend={{ value: 5, isPositive: true }}
+        // trend={{ value: 5, isPositive: true }}
         />
         <StatCard
           title="Active Trips"
@@ -101,7 +101,7 @@ export default function Dashboard() {
           title="Total Receipts"
           value={stats.totalReceipts}
           icon={Receipt}
-          trend={{ value: 8, isPositive: true }}
+        // trend={{ value: 8, isPositive: true }}
         />
       </div>
 
@@ -111,7 +111,7 @@ export default function Dashboard() {
           <h2 className="text-lg font-semibold text-foreground">Recent Trips</h2>
           <Clock className="w-5 h-5 text-muted-foreground" />
         </div>
-        
+
         {loading ? (
           <div className="text-center py-8 text-muted-foreground">Loading...</div>
         ) : recentTrips.length === 0 ? (
@@ -135,8 +135,8 @@ export default function Dashboard() {
                   <td>{trip.vehicles?.vehicle_number || "N/A"}</td>
                   <td>{new Date(trip.trip_date).toLocaleDateString()}</td>
                   <td>
-                    <StatusBadge 
-                      status={trip.status === "STARTED" ? "started" : "ended"} 
+                    <StatusBadge
+                      status={trip.status === "STARTED" ? "started" : "ended"}
                     />
                   </td>
                 </tr>

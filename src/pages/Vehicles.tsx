@@ -71,7 +71,7 @@ export default function Vehicles() {
 
   async function handleCreateVehicle(e: React.FormEvent) {
     e.preventDefault();
-    
+
     if (!newVehicle.vehicle_number || !newVehicle.vehicle_type) {
       toast.error("Please fill in all required fields");
       return;
@@ -103,7 +103,7 @@ export default function Vehicles() {
         .eq("id", id);
 
       if (error) throw error;
-      
+
       toast.success(`Vehicle ${currentStatus ? "deactivated" : "activated"}`);
       fetchVehicles();
     } catch (error) {

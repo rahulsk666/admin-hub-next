@@ -13,21 +13,24 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { Database } from "@/integrations/supabase/types";
 
 interface Employee {
   id: string;
   name: string;
+  email: string | null;
   phone: string | null;
   is_active: boolean;
   created_at: string;
 }
+type UserInsert = Database["public"]["Tables"]["users"]["Insert"];
 
 export default function Employees() {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [newEmployee, setNewEmployee] = useState({ name: "", phone: "", email: "", password: "" });
+  const [newEmployee, setNewEmployee] = useState({ name: "", phone: "", email: "" });
 
   useEffect(() => {
     fetchEmployees();
@@ -36,12 +39,13 @@ export default function Employees() {
   async function fetchEmployees() {
     try {
       const { data, error } = await supabase
-        .from("profiles")
+        .from("users")
         .select("*")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setEmployees(data || []);
+
+      setEmployees((data as any) || []);
     } catch (error) {
       console.error("Error fetching employees:", error);
       toast.error("Failed to load employees");
@@ -52,55 +56,46 @@ export default function Employees() {
 
   async function handleCreateEmployee(e: React.FormEvent) {
     e.preventDefault();
-    
-    if (!newEmployee.email || !newEmployee.password || !newEmployee.name) {
+
+    if (!newEmployee.email || !newEmployee.name) {
       toast.error("Please fill in all required fields");
       return;
     }
 
+    const payload: UserInsert = {
+      name: newEmployee.name,
+      email: newEmployee.email,
+      phone: newEmployee.phone || null,
+      role: "EMPLOYEE",
+      is_active: true
+    };
+
     try {
-      // Create auth user first (profile will be created by trigger)
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: newEmployee.email,
-        password: newEmployee.password,
-        options: {
-          data: {
-            name: newEmployee.name,
-          },
-        },
-      });
+      const { error } = await supabase
+        .from("users")
+        .insert(payload);
 
-      if (authError) throw authError;
+      if (error) throw error;
 
-      // Update profile with phone if provided
-      if (authData.user && newEmployee.phone) {
-        const { error: updateError } = await supabase
-          .from("profiles")
-          .update({ phone: newEmployee.phone })
-          .eq("id", authData.user.id);
-
-        if (updateError) throw updateError;
-      }
-
-      toast.success("Employee created successfully");
+      toast.success("Employee added successfully");
       setDialogOpen(false);
-      setNewEmployee({ name: "", phone: "", email: "", password: "" });
+      setNewEmployee({ name: "", phone: "", email: "" });
       fetchEmployees();
     } catch (error: any) {
-      console.error("Error creating employee:", error);
-      toast.error(error.message || "Failed to create employee");
+      console.error("Error adding employee:", error);
+      toast.error(error.message || "Failed to add employee");
     }
   }
 
   async function toggleEmployeeStatus(id: string, currentStatus: boolean) {
     try {
       const { error } = await supabase
-        .from("profiles")
+        .from("users")
         .update({ is_active: !currentStatus })
         .eq("id", id);
 
       if (error) throw error;
-      
+
       toast.success(`Employee ${currentStatus ? "deactivated" : "activated"}`);
       fetchEmployees();
     } catch (error) {
@@ -155,18 +150,7 @@ export default function Employees() {
                   required
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="emp-password">Password *</Label>
-                <Input
-                  id="emp-password"
-                  type="password"
-                  placeholder="Min 6 characters"
-                  value={newEmployee.password}
-                  onChange={(e) => setNewEmployee({ ...newEmployee, password: e.target.value })}
-                  className="bg-input border-border"
-                  required
-                />
-              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="emp-phone">Phone</Label>
                 <Input
