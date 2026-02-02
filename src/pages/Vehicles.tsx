@@ -54,7 +54,7 @@ export default function Vehicles() {
   const [formData, setFormData] = useState({ vehicle_number: "", vehicle_type: "", image_url: "" });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [vehicleImage, setVehicleImage] = useState<File | null>(null);
-  const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+  const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
   useEffect(() => {
     fetchVehicles();
@@ -324,7 +324,7 @@ export default function Vehicles() {
               <Label htmlFor="vehicle-image">Vehicle Picture</Label>
               {formData.image_url && (<img src={formData.image_url} alt="Vehicle" className="w-24 h-24" />)}
               <div className="flex items-center gap-2">
-                <Input id="vehicle-image" type="file" accept="image/*" className="hidden" onChange={(e) => handleVehicleImageUpload(e.target.files[0] ?? null)} />
+                <Input id="vehicle-image" type="file" accept="image/jpeg, image/png" className="hidden" onChange={(e) => handleVehicleImageUpload(e.target.files[0] ?? null)} />
                 <Button type="button" variant="outline" className="flex-1" onClick={() => document.getElementById("vehicle-image")?.click()}>
                   {formData.image_url ? "Change Image" : "Upload Image"}
                 </Button>
@@ -333,7 +333,7 @@ export default function Vehicles() {
                 </Button>}
               </div>
               <p className="text-xs text-muted-foreground">
-                JPG, PNG • Max 2MB
+                JPG, PNG • Max 5MB
               </p>
             </div>
             <div className="flex gap-3 pt-4">
