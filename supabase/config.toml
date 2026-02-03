@@ -1,1 +1,28 @@
-project_id = "ftneimbwcqignlxaakot"
+project_id = "env(VITE_PROJECT_ID)"
+
+[auth]
+site_url = "env(SUPABASE_SITE_URL)"
+additional_redirect_urls = [
+    "http://localhost:8080/",
+    "http://127.0.0.1:54321",
+    "env(SUPABASE_AUTH_GOOGLE_REDIRECT_URI)",
+]
+
+[auth.external.google]
+enabled = true
+client_id = "env(SUPABASE_AUTH_GOOGLE_CLIENT_ID)"
+secret = "env(SUPABASE_AUTH_GOOGLE_SECRET)"
+
+[storage]
+enabled = true
+
+[storage.buckets.vehicles]
+public = true
+file_size_limit = "5MiB"
+allowed_mime_types = ["image/png", "image/jpeg"]
+
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage"]

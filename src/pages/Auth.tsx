@@ -10,14 +10,13 @@ import { Database } from "@/integrations/supabase/types";
 
 type UserRow = Database["public"]["Tables"]["users"]["Row"];
 
-
 export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [isChecking, setIsChecking] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const checkWhitelist = async (session: Session) => {
+    const checkWhitelistAndAuthLinking = async (session: Session) => {
       setIsChecking(true);
       const email = session.user.email;
 
@@ -37,7 +36,9 @@ export default function Auth() {
       // ❌ DB error or user not found → deny
       if (error || !userRecord) {
         await supabase.auth.signOut();
-        toast.error("Access denied. You are not authorized to use this application.");
+        toast.error(
+          "Access denied. You are not authorized to use this application.",
+        );
         setIsChecking(false);
         return;
       }
@@ -49,15 +50,33 @@ export default function Auth() {
         return;
       }
 
+      const { data } = await supabase.auth.getUser();
+
+      // Auth Linking
+      if (!userRecord.auth_user_id) {
+        await supabase
+          .from("users")
+          .update({ auth_user_id: data.user.id })
+          .eq("email", data.user.email);
+      }
+
+      if (!userRecord.avatar_url) {
+        await supabase
+          .from("users")
+          .update({ avatar_url: data.user.user_metadata.avatar_url })
+          .eq("email", data.user.email);
+      }
+
       // ✅ Allowed (ADMIN or active EMPLOYEE)
       setIsChecking(false);
       navigate("/dashboard");
     };
 
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION')) {
-        checkWhitelist(session);
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session && (event === "SIGNED_IN" || event === "INITIAL_SESSION")) {
+        checkWhitelistAndAuthLinking(session);
       }
     });
 
@@ -68,7 +87,7 @@ export default function Auth() {
     setLoading(true);
     try {
       const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
+        provider: "google",
         options: {
           redirectTo: `${window.location.origin}/auth`,
         },
@@ -97,7 +116,9 @@ export default function Auth() {
             <div className="stat-icon w-16 h-16 mx-auto mb-4">
               <Truck className="w-8 h-8 text-primary-foreground" />
             </div>
-            <h1 className="text-2xl font-bold text-foreground">TripTrack Pro</h1>
+            <h1 className="text-2xl font-bold text-foreground">
+              TripTrack Pro
+            </h1>
             <p className="text-muted-foreground mt-1">Admin Portal</p>
           </div>
 

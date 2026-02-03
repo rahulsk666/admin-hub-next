@@ -14,12 +14,16 @@ import {
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Database } from "@/integrations/supabase/types";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Switch } from "@/components/ui/switch";
 
 interface Employee {
   id: string;
   name: string;
+  role: string;
   email: string | null;
   phone: string | null;
+  avatar_url: string | null;
   is_active: boolean;
   created_at: string;
 }
@@ -33,6 +37,7 @@ export default function Employees() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [formData, setFormData] = useState({ name: "", phone: "", email: "" });
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [adminSwitch, setAdminSwitch] = useState(false);
 
   useEffect(() => {
     fetchEmployees();
@@ -47,7 +52,7 @@ export default function Employees() {
 
       if (error) throw error;
 
-      setEmployees((data as any) || []);
+      setEmployees(data || []);
     } catch (error) {
       console.error("Error fetching employees:", error);
       toast.error("Failed to load employees");
@@ -67,7 +72,7 @@ export default function Employees() {
     setFormData({
       name: employee.name,
       email: employee.email || "",
-      phone: employee.phone || ""
+      phone: employee.phone || "",
     });
     setDialogOpen(true);
   };
@@ -100,11 +105,9 @@ export default function Employees() {
           email: formData.email,
           phone: formData.phone || null,
           role: "EMPLOYEE",
-          is_active: true
+          is_active: true,
         };
-        const { error } = await supabase
-          .from("users")
-          .insert(createPayload);
+        const { error } = await supabase.from("users").insert(createPayload);
 
         if (error) throw error;
 
@@ -113,7 +116,7 @@ export default function Employees() {
       setDialogOpen(false);
       setFormData({ name: "", phone: "", email: "" });
       fetchEmployees();
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error adding employee:", error);
       toast.error(error.message || "Failed to add employee");
     }
@@ -136,9 +139,15 @@ export default function Employees() {
     }
   }
 
-  const filteredEmployees = employees.filter((emp) =>
-    emp.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredEmployees = employees.filter((emp) => {
+    const query = searchQuery.toLowerCase();
+    const matchSearch =
+      (emp.name.toLowerCase().includes(query) ||
+        emp.email.toLowerCase().includes(query)) ??
+      false;
+    const matchAdminSwitch = adminSwitch ? emp.role === "ADMIN" : true;
+    return matchSearch && matchAdminSwitch;
+  });
 
   return (
     <div className="space-y-6">
@@ -156,7 +165,9 @@ export default function Employees() {
           </DialogTrigger>
           <DialogContent className="bg-card border-border">
             <DialogHeader>
-              <DialogTitle>{editingId ? "Edit Employee" : "Add New Employee"}</DialogTitle>
+              <DialogTitle>
+                {editingId ? "Edit Employee" : "Add New Employee"}
+              </DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
@@ -165,7 +176,9 @@ export default function Employees() {
                   id="emp-name"
                   placeholder="John Doe"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
                   className="bg-input border-border"
                   required
                 />
@@ -177,7 +190,9 @@ export default function Employees() {
                   type="email"
                   placeholder="john@company.com"
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
                   className="bg-input border-border"
                   required
                 />
@@ -190,12 +205,19 @@ export default function Employees() {
                   type="tel"
                   placeholder="+1 234 567 8900"
                   value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, phone: e.target.value })
+                  }
                   className="bg-input border-border"
                 />
               </div>
               <div className="flex gap-3 pt-4">
-                <Button type="button" variant="outline" onClick={() => setDialogOpen(false)} className="flex-1">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setDialogOpen(false)}
+                  className="flex-1"
+                >
                   Cancel
                 </Button>
                 <Button type="submit" className="flex-1">
@@ -208,33 +230,52 @@ export default function Employees() {
       </div>
 
       {/* Search */}
-      <div className="relative max-w-md">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input
-          placeholder="Search employees..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10 bg-input border-border"
-        />
+      <div className="flex flex-row justify-between">
+        <div className="flex relative max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="Search employees..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 bg-input border-border"
+          />
+        </div>
+
+        {
+          <div className="flex flex-row justify-between items-center gap-2 mr-2">
+            <Label htmlFor="admin-switch">Admin Only</Label>
+            <Switch
+              id="admin-switch"
+              checked={adminSwitch}
+              onCheckedChange={setAdminSwitch}
+            />
+          </div>
+        }
       </div>
 
       {/* Table */}
       <div className="stat-card overflow-hidden">
         {loading ? (
-          <div className="text-center py-8 text-muted-foreground">Loading employees...</div>
+          <div className="text-center py-8 text-muted-foreground">
+            Loading employees...
+          </div>
         ) : filteredEmployees.length === 0 ? (
           <div className="text-center py-12">
             <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
             <p className="text-muted-foreground">
-              {searchQuery ? "No employees match your search" : "No employees yet. Add your first employee to get started."}
+              {searchQuery
+                ? "No employees match your search"
+                : "No employees yet. Add your first employee to get started."}
             </p>
           </div>
         ) : (
           <table className="data-table">
             <thead>
               <tr>
+                <th>Avatar</th>
                 <th>Name</th>
                 <th>Phone</th>
+                <th>Role</th>
                 <th>Status</th>
                 <th>Joined</th>
                 <th>Actions</th>
@@ -243,10 +284,21 @@ export default function Employees() {
             <tbody>
               {filteredEmployees.map((employee) => (
                 <tr key={employee.id} className="animate-fade-in">
+                  <td className="items-center">
+                    <Avatar>
+                      <AvatarImage src={employee.avatar_url} alt="avatar" />
+                      <AvatarFallback>
+                        <img src="/profile.png" alt="fallback" className="" />
+                      </AvatarFallback>
+                    </Avatar>
+                  </td>
                   <td className="font-medium">{employee.name}</td>
                   <td>{employee.phone || "—"}</td>
+                  <td>{employee.role.toLowerCase() || "—"}</td>
                   <td>
-                    <StatusBadge status={employee.is_active ? "active" : "inactive"} />
+                    <StatusBadge
+                      status={employee.is_active ? "active" : "inactive"}
+                    />
                   </td>
                   <td className="text-muted-foreground">
                     {new Date(employee.created_at).toLocaleDateString()}
@@ -255,7 +307,9 @@ export default function Employees() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => toggleEmployeeStatus(employee.id, employee.is_active)}
+                      onClick={() =>
+                        toggleEmployeeStatus(employee.id, employee.is_active)
+                      }
                     >
                       {employee.is_active ? "Deactivate" : "Activate"}
                     </Button>

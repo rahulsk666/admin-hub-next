@@ -4,4 +4,5 @@
 
 insert into storage.buckets (id, name, public)
 values ('vehicles', 'vehicles', true)
-on conflict do nothing;
+on conflict (id) do update
+set public = true;

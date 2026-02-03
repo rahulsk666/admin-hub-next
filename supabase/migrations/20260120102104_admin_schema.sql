@@ -24,6 +24,7 @@ create table users (
   name text not null,
   email text unique not null,
   phone text,
+  avatar_url text,
   role text check (role in ('ADMIN', 'EMPLOYEE')) not null default 'EMPLOYEE',
   is_active boolean default true,
   created_at timestamp with time zone default now()
@@ -35,7 +36,7 @@ create table users (
 create table vehicles (
   id uuid primary key default gen_random_uuid(),
   company_id uuid references companies(id) on delete cascade,
-  vehicle_number text not null,
+  vehicle_number text unique not null,
   vehicle_type text,
   is_active boolean default true
 );
