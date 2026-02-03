@@ -248,30 +248,44 @@ export default function Vehicles() {
         ) : (
           filteredVehicles.map((vehicle) => (
             <div key={vehicle.id} className="stat-card animate-fade-in">
-              <div className="flex items-start justify-between mb-4">
-                <div className="stat-icon">
-                  <Car className="w-6 h-6 text-primary-foreground" />
+              <div className="flex items-end justify-center"></div>
+              <div className="flex items-start justify-center mb-4">
+                {vehicle.image_url ? (
+                  <img
+                    src={vehicle.image_url}
+                    alt="vehicle image"
+                    className="h-52 w-80 object-contain"
+                  />
+                ) : (
+                  <div className="stat-icon h-52 w-80">
+                    <Car className="w-44 h-44 text-primary-foreground" />
+                  </div>
+                )}
+              </div>
+              <div className="flex flex-row justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-foreground mb-1">
+                    {vehicle.vehicle_number.toUpperCase()}
+                  </h3>
+                  <p className="text-muted-foreground text-sm mb-4">
+                    {vehicle.vehicle_type}
+                  </p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-row items-center gap-2">
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                    className="h-8 w-16 text-muted-foreground hover:text-foreground"
                     onClick={() => handleOpenEditDialog(vehicle)}
                   >
                     <Pencil className="w-4 h-4" />
                   </Button>
                   <StatusBadge
                     status={vehicle.is_active ? "active" : "inactive"}
+                    label={vehicle.is_active ? "Available" : "Unavailable"}
                   />
                 </div>
               </div>
-              <h3 className="text-lg font-semibold text-foreground mb-1">
-                {vehicle.vehicle_number.toUpperCase()}
-              </h3>
-              <p className="text-muted-foreground text-sm mb-4">
-                {vehicle.vehicle_type}
-              </p>
               <div className="flex items-center justify-between pt-4 border-t border-border">
                 <span className="text-xs text-muted-foreground">
                   Added {new Date(vehicle.created_at).toLocaleDateString()}
@@ -284,7 +298,9 @@ export default function Vehicles() {
                       toggleVehicleStatus(vehicle.id, vehicle.is_active)
                     }
                   >
-                    {vehicle.is_active ? "Deactivate" : "Activate"}
+                    {vehicle.is_active
+                      ? "Mark as Unavailable"
+                      : "Mark as Available"}
                   </Button>
                 </div>
               </div>
