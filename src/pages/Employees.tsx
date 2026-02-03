@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Database } from "@/integrations/supabase/types";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Switch } from "@/components/ui/switch";
 
 interface Employee {
   id: string;
@@ -36,6 +37,7 @@ export default function Employees() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [formData, setFormData] = useState({ name: "", phone: "", email: "" });
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [adminSwitch, setAdminSwitch] = useState(false);
 
   useEffect(() => {
     fetchEmployees();
@@ -137,9 +139,15 @@ export default function Employees() {
     }
   }
 
-  const filteredEmployees = employees.filter((emp) =>
-    emp.name.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
+  const filteredEmployees = employees.filter((emp) => {
+    const query = searchQuery.toLowerCase();
+    const matchSearch =
+      (emp.name.toLowerCase().includes(query) ||
+        emp.email.toLowerCase().includes(query)) ??
+      false;
+    const matchAdminSwitch = adminSwitch ? emp.role === "ADMIN" : true;
+    return matchSearch && matchAdminSwitch;
+  });
 
   return (
     <div className="space-y-6">
@@ -222,14 +230,27 @@ export default function Employees() {
       </div>
 
       {/* Search */}
-      <div className="relative max-w-md">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input
-          placeholder="Search employees..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10 bg-input border-border"
-        />
+      <div className="flex flex-row justify-between">
+        <div className="flex relative max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="Search employees..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10 bg-input border-border"
+          />
+        </div>
+
+        {
+          <div className="flex flex-row justify-between items-center gap-2 mr-2">
+            <Label htmlFor="admin-switch">Admin Only</Label>
+            <Switch
+              id="admin-switch"
+              checked={adminSwitch}
+              onCheckedChange={setAdminSwitch}
+            />
+          </div>
+        }
       </div>
 
       {/* Table */}

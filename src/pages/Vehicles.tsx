@@ -192,7 +192,9 @@ export default function Vehicles() {
 
       if (error) throw error;
 
-      toast.success(`Vehicle ${currentStatus ? "deactivated" : "activated"}`);
+      toast.success(
+        `Vehicle marked as ${currentStatus ? "unavailable" : "available"}`,
+      );
       fetchVehicles();
     } catch (error) {
       console.error("Error updating vehicle:", error);
