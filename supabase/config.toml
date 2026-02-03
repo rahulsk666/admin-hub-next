@@ -17,10 +17,9 @@ secret = "env(SUPABASE_AUTH_GOOGLE_SECRET)"
 enabled = true
 
 [storage.buckets.vehicles]
-public = false
+public = true
 file_size_limit = "5MiB"
 allowed_mime_types = ["image/png", "image/jpeg"]
-objects_path = "./vehicles"
 
 
 [api]

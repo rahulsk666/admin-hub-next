@@ -53,7 +53,11 @@ export default function Vehicles() {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [formData, setFormData] = useState({ vehicle_number: "", vehicle_type: "", image_url: "" });
+  const [formData, setFormData] = useState({
+    vehicle_number: "",
+    vehicle_type: "",
+    image_url: "",
+  });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [vehicleImage, setVehicleImage] = useState<File | null>(null);
 
@@ -87,7 +91,11 @@ export default function Vehicles() {
 
   function handleOpenEditDialog(vehicle: Vehicle) {
     setEditingId(vehicle.id);
-    setFormData({ vehicle_number: vehicle.vehicle_number, vehicle_type: vehicle.vehicle_type, image_url: vehicle.image_url });
+    setFormData({
+      vehicle_number: vehicle.vehicle_number,
+      vehicle_type: vehicle.vehicle_type,
+      image_url: vehicle.image_url,
+    });
     setVehicleImage(null);
     setDialogOpen(true);
   }
@@ -107,9 +115,7 @@ export default function Vehicles() {
 
     if (uploadError) throw uploadError;
 
-    const { data } = supabase.storage
-      .from("vehicles")
-      .getPublicUrl(filePath);
+    const { data } = supabase.storage.from("vehicles").getPublicUrl(filePath);
     return `${data.publicUrl}?t=${Date.now()}`;
   }
 
@@ -140,10 +146,14 @@ export default function Vehicles() {
         if (error) throw error;
         toast.success("Vehicle updated successfully");
       } else {
-        const { data: vehicleData, error } = await supabase.from("vehicles").insert({
-          vehicle_number: formData.vehicle_number,
-          vehicle_type: formData.vehicle_type,
-        } as vehicleInsert).select().single();
+        const { data: vehicleData, error } = await supabase
+          .from("vehicles")
+          .insert({
+            vehicle_number: formData.vehicle_number,
+            vehicle_type: formData.vehicle_type,
+          } as vehicleInsert)
+          .select()
+          .single();
 
         if (error) throw error;
 
@@ -164,9 +174,12 @@ export default function Vehicles() {
       setFormData({ vehicle_number: "", vehicle_type: "", image_url: "" });
       setVehicleImage(null);
       fetchVehicles();
-    } catch (error: any) {
-      console.error("Error saving vehicle:", error);
-      toast.error(error.message || "Failed to save vehicle");
+    } catch (error) {
+      if (error && error.code == 23505) {
+        toast.error("Vehicle with this number already exists");
+      } else {
+        toast.error(error.message || "Failed to save vehicle");
+      }
     }
   }
 
@@ -187,9 +200,10 @@ export default function Vehicles() {
     }
   }
 
-  const filteredVehicles = vehicles.filter((v) =>
-    v.vehicle_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    v.vehicle_type.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredVehicles = vehicles.filter(
+    (v) =>
+      v.vehicle_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      v.vehicle_type.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   return (
@@ -219,12 +233,16 @@ export default function Vehicles() {
       {/* Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {loading ? (
-          <div className="col-span-full text-center py-8 text-muted-foreground">Loading vehicles...</div>
+          <div className="col-span-full text-center py-8 text-muted-foreground">
+            Loading vehicles...
+          </div>
         ) : filteredVehicles.length === 0 ? (
           <div className="col-span-full text-center py-12">
             <Car className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
             <p className="text-muted-foreground">
-              {searchQuery ? "No vehicles match your search" : "No vehicles yet. Add your first vehicle to get started."}
+              {searchQuery
+                ? "No vehicles match your search"
+                : "No vehicles yet. Add your first vehicle to get started."}
             </p>
           </div>
         ) : (
@@ -243,13 +261,17 @@ export default function Vehicles() {
                   >
                     <Pencil className="w-4 h-4" />
                   </Button>
-                  <StatusBadge status={vehicle.is_active ? "active" : "inactive"} />
+                  <StatusBadge
+                    status={vehicle.is_active ? "active" : "inactive"}
+                  />
                 </div>
               </div>
               <h3 className="text-lg font-semibold text-foreground mb-1">
-                {vehicle.vehicle_number}
+                {vehicle.vehicle_number.toUpperCase()}
               </h3>
-              <p className="text-muted-foreground text-sm mb-4">{vehicle.vehicle_type}</p>
+              <p className="text-muted-foreground text-sm mb-4">
+                {vehicle.vehicle_type}
+              </p>
               <div className="flex items-center justify-between pt-4 border-t border-border">
                 <span className="text-xs text-muted-foreground">
                   Added {new Date(vehicle.created_at).toLocaleDateString()}
@@ -258,7 +280,9 @@ export default function Vehicles() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => toggleVehicleStatus(vehicle.id, vehicle.is_active)}
+                    onClick={() =>
+                      toggleVehicleStatus(vehicle.id, vehicle.is_active)
+                    }
                   >
                     {vehicle.is_active ? "Deactivate" : "Activate"}
                   </Button>
@@ -272,19 +296,30 @@ export default function Vehicles() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="bg-card border-border">
           <DialogHeader>
-            <DialogTitle>{editingId ? "Edit Vehicle" : "Add New Vehicle"}</DialogTitle>
+            <DialogTitle>
+              {editingId ? "Edit Vehicle" : "Add New Vehicle"}
+            </DialogTitle>
           </DialogHeader>
           <DialogDescription>
-            {editingId ? "Edit the vehicle details" : "Add a new vehicle and upload a picture of it."}
+            {editingId
+              ? "Edit the vehicle details"
+              : "Add a new vehicle and upload a picture of it."}
           </DialogDescription>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="vehicle-number">Vehicle Number / License Plate *</Label>
+              <Label htmlFor="vehicle-number">
+                Vehicle Number / License Plate *
+              </Label>
               <Input
                 id="vehicle-number"
                 placeholder="ABC-1234"
                 value={formData.vehicle_number}
-                onChange={(e) => setFormData({ ...formData, vehicle_number: e.target.value })}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    vehicle_number: e.target.value.toUpperCase(),
+                  })
+                }
                 className="bg-input border-border"
                 required
               />
@@ -293,7 +328,9 @@ export default function Vehicles() {
               <Label htmlFor="vehicle-type">Vehicle Type *</Label>
               <Select
                 value={formData.vehicle_type}
-                onValueChange={(value) => setFormData({ ...formData, vehicle_type: value })}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, vehicle_type: value })
+                }
               >
                 <SelectTrigger className="bg-input border-border">
                   <SelectValue placeholder="Select vehicle type" />
@@ -319,7 +356,12 @@ export default function Vehicles() {
               />
             </div>
             <div className="flex gap-3 pt-4">
-              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)} className="flex-1">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setDialogOpen(false)}
+                className="flex-1"
+              >
                 Cancel
               </Button>
               <Button type="submit" className="flex-1">

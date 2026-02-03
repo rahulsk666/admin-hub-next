@@ -35,7 +35,7 @@ create table users (
 create table vehicles (
   id uuid primary key default gen_random_uuid(),
   company_id uuid references companies(id) on delete cascade,
-  vehicle_number text not null,
+  vehicle_number text unique not null,
   vehicle_type text,
   is_active boolean default true
 );

@@ -27,6 +27,7 @@ dist-ssr
 .supabase/
 supabase/.temp/
 supabase/.branches/
+supabase/seed.sql
 
 # Environment variables
 .env
