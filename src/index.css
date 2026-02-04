@@ -1,103 +1,308 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@plugin 'tailwindcss-animate';
+
+@custom-variant dark (&:is(.dark *));
+
+@utility container {
+  margin-inline: auto;
+  padding-inline: 2rem;
+
+  @media (width >= 640px) {
+    max-width: none;
+  }
+  @media (width >= 1400px) {
+    max-width: 1400px;
+  }
+}
 
 /* TripTrack Pro Admin - Dark Fleet Management Theme */
+:root {
+  --background: hsl(222 47% 6%);
+  --foreground: hsl(210 40% 98%);
 
-@layer base {
-  :root {
-    --background: 222 47% 6%;
-    --foreground: 210 40% 98%;
+  --card: hsl(222 47% 9%);
+  --card-foreground: hsl(210 40% 98%);
 
-    --card: 222 47% 9%;
-    --card-foreground: 210 40% 98%;
+  --popover: hsl(222 47% 9%);
+  --popover-foreground: hsl(210 40% 98%);
 
-    --popover: 222 47% 9%;
-    --popover-foreground: 210 40% 98%;
+  --primary: hsl(217 91% 60%);
+  --primary-foreground: hsl(222 47% 6%);
 
-    --primary: 217 91% 60%;
-    --primary-foreground: 222 47% 6%;
+  --secondary: hsl(222 47% 14%);
+  --secondary-foreground: hsl(210 40% 98%);
 
-    --secondary: 222 47% 14%;
-    --secondary-foreground: 210 40% 98%;
+  --muted: hsl(222 47% 14%);
+  --muted-foreground: hsl(215 20% 55%);
 
-    --muted: 222 47% 14%;
-    --muted-foreground: 215 20% 55%;
+  --accent: hsl(217 91% 60%);
+  --accent-foreground: hsl(222 47% 6%);
 
-    --accent: 217 91% 60%;
-    --accent-foreground: 222 47% 6%;
+  --destructive: hsl(0 84% 60%);
+  --destructive-foreground: hsl(210 40% 98%);
 
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
+  --success: hsl(142 76% 45%);
+  --success-foreground: hsl(210 40% 98%);
 
-    --success: 142 76% 45%;
-    --success-foreground: 210 40% 98%;
+  --warning: hsl(38 92% 50%);
+  --warning-foreground: hsl(222 47% 6%);
 
-    --warning: 38 92% 50%;
-    --warning-foreground: 222 47% 6%;
+  --info: hsl(199 89% 48%);
+  --info-foreground: hsl(210 40% 98%);
 
-    --info: 199 89% 48%;
-    --info-foreground: 210 40% 98%;
+  --border: hsl(222 47% 18%);
+  --input: hsl(222 47% 14%);
+  --ring: hsl(217 91% 60%);
 
-    --border: 222 47% 18%;
-    --input: 222 47% 14%;
-    --ring: 217 91% 60%;
+  --radius: 0.75rem;
 
-    --radius: 0.75rem;
+  --sidebar-background: hsl(222 47% 8%);
+  --sidebar-foreground: hsl(210 40% 98%);
+  --sidebar-primary: hsl(217 91% 60%);
+  --sidebar-primary-foreground: hsl(222 47% 6%);
+  --sidebar-accent: hsl(222 47% 14%);
+  --sidebar-accent-foreground: hsl(210 40% 98%);
+  --sidebar-border: hsl(222 47% 16%);
+  --sidebar-ring: hsl(217 91% 60%);
 
-    --sidebar-background: 222 47% 8%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 217 91% 60%;
-    --sidebar-primary-foreground: 222 47% 6%;
-    --sidebar-accent: 222 47% 14%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 222 47% 16%;
-    --sidebar-ring: 217 91% 60%;
+  /* Custom gradients */
+  --gradient-primary: linear-gradient(
+    135deg,
+    hsl(217 91% 60%) 0%,
+    hsl(199 89% 48%) 100%
+  );
+  --gradient-success: linear-gradient(
+    135deg,
+    hsl(142 76% 45%) 0%,
+    hsl(160 84% 39%) 100%
+  );
+  --gradient-card: linear-gradient(
+    180deg,
+    hsl(222 47% 10%) 0%,
+    hsl(222 47% 8%) 100%
+  );
+}
 
-    /* Custom gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(199 89% 48%) 100%);
-    --gradient-success: linear-gradient(135deg, hsl(142 76% 45%) 0%, hsl(160 84% 39%) 100%);
-    --gradient-card: linear-gradient(180deg, hsl(222 47% 10%) 0%, hsl(222 47% 8%) 100%);
+.dark {
+  --background: hsl(222 47% 6%);
+  --foreground: hsl(210 40% 98%);
+
+  --card: hsl(222 47% 9%);
+  --card-foreground: hsl(210 40% 98%);
+
+  --popover: hsl(222 47% 9%);
+  --popover-foreground: hsl(210 40% 98%);
+
+  --primary: hsl(217 91% 60%);
+  --primary-foreground: hsl(222 47% 6%);
+
+  --secondary: hsl(222 47% 14%);
+  --secondary-foreground: hsl(210 40% 98%);
+
+  --muted: hsl(222 47% 14%);
+  --muted-foreground: hsl(215 20% 55%);
+
+  --accent: hsl(217 91% 60%);
+  --accent-foreground: hsl(222 47% 6%);
+
+  --destructive: hsl(0 84% 60%);
+  --destructive-foreground: hsl(210 40% 98%);
+
+  --border: hsl(222 47% 18%);
+  --input: hsl(222 47% 14%);
+  --ring: hsl(217 91% 60%);
+
+  --sidebar-background: hsl(222 47% 8%);
+  --sidebar-foreground: hsl(210 40% 98%);
+  --sidebar-primary: hsl(217 91% 60%);
+  --sidebar-primary-foreground: hsl(222 47% 6%);
+  --sidebar-accent: hsl(222 47% 14%);
+  --sidebar-accent-foreground: hsl(210 40% 98%);
+  --sidebar-border: hsl(222 47% 16%);
+  --sidebar-ring: hsl(217 91% 60%);
+}
+
+@theme inline {
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+
+  --color-sidebar: var(--sidebar-background);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+  --animate-fade-in: fade-in 0.3s ease-out;
+  --animate-slide-in: slide-in 0.3s ease-out;
+
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  }
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+    to {
+      height: 0;
+    }
+  }
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes slide-in {
+    from {
+      opacity: 0;
+      transform: translateX(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+}
+
+@utility stat-card {
+  @apply bg-card rounded-xl p-6 border border-border shadow-lg;
+  background: var(--gradient-card);
+}
+
+@utility stat-value {
+  @apply text-3xl font-bold text-foreground;
+}
+
+@utility stat-label {
+  @apply text-sm text-muted-foreground uppercase tracking-wide;
+}
+
+@utility stat-icon {
+  @apply w-12 h-12 rounded-lg flex items-center justify-center;
+  background: var(--gradient-primary);
+}
+
+@utility status-badge {
+  @apply px-3 py-1 rounded-full text-xs font-medium;
+}
+
+@utility status-active {
+  @apply bg-success/20 text-success;
+}
+
+@utility status-inactive {
+  @apply bg-destructive/20 text-destructive;
+}
+
+@utility status-pending {
+  @apply bg-warning/20 text-warning;
+}
+
+@utility status-started {
+  @apply bg-info/20 text-info;
+}
+
+@utility status-ended {
+  @apply bg-muted text-muted-foreground;
+}
+
+@utility data-table {
+  @apply w-full border-collapse;
+
+  & th {
+    @apply text-left text-xs uppercase tracking-wider text-muted-foreground font-medium py-3 px-4 border-b border-border;
   }
 
-  .dark {
-    --background: 222 47% 6%;
-    --foreground: 210 40% 98%;
-
-    --card: 222 47% 9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222 47% 9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 217 91% 60%;
-    --primary-foreground: 222 47% 6%;
-
-    --secondary: 222 47% 14%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 222 47% 14%;
-    --muted-foreground: 215 20% 55%;
-
-    --accent: 217 91% 60%;
-    --accent-foreground: 222 47% 6%;
-
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 222 47% 18%;
-    --input: 222 47% 14%;
-    --ring: 217 91% 60%;
-
-    --sidebar-background: 222 47% 8%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-primary: 217 91% 60%;
-    --sidebar-primary-foreground: 222 47% 6%;
-    --sidebar-accent: 222 47% 14%;
-    --sidebar-accent-foreground: 210 40% 98%;
-    --sidebar-border: 222 47% 16%;
-    --sidebar-ring: 217 91% 60%;
+  & td {
+    @apply py-4 px-4 border-b border-border;
   }
+
+  & tr:hover {
+    @apply bg-secondary/50;
+  }
+}
+
+@utility nav-link {
+  @apply flex items-center gap-3 px-4 py-3 rounded-lg text-muted-foreground transition-all duration-200 hover:bg-secondary hover:text-foreground;
+}
+
+@utility nav-link-active {
+  @apply bg-primary/10 text-primary border-l-2 border-primary;
+}
+
+@utility page-header {
+  @apply text-2xl font-bold text-foreground mb-6;
+}
+
+@utility form-section {
+  @apply bg-card rounded-xl p-6 border border-border;
+}
+
+@utility gradient-text {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+@utility shadow-glow {
+  box-shadow: 0 0 20px hsl(217 91% 60% / 0.15);
+}
+
+@utility animate-pulse-slow {
+  animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 @layer base {
@@ -107,99 +312,12 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  }
-}
-
-@layer components {
-  .stat-card {
-    @apply bg-card rounded-xl p-6 border border-border shadow-lg;
-    background: var(--gradient-card);
-  }
-
-  .stat-value {
-    @apply text-3xl font-bold text-foreground;
-  }
-
-  .stat-label {
-    @apply text-sm text-muted-foreground uppercase tracking-wide;
-  }
-
-  .stat-icon {
-    @apply w-12 h-12 rounded-lg flex items-center justify-center;
-    background: var(--gradient-primary);
-  }
-
-  .status-badge {
-    @apply px-3 py-1 rounded-full text-xs font-medium;
-  }
-
-  .status-active {
-    @apply bg-success/20 text-success;
-  }
-
-  .status-inactive {
-    @apply bg-destructive/20 text-destructive;
-  }
-
-  .status-pending {
-    @apply bg-warning/20 text-warning;
-  }
-
-  .status-started {
-    @apply bg-info/20 text-info;
-  }
-
-  .status-ended {
-    @apply bg-muted text-muted-foreground;
-  }
-
-  .data-table {
-    @apply w-full border-collapse;
-  }
-
-  .data-table th {
-    @apply text-left text-xs uppercase tracking-wider text-muted-foreground font-medium py-3 px-4 border-b border-border;
-  }
-
-  .data-table td {
-    @apply py-4 px-4 border-b border-border;
-  }
-
-  .data-table tr:hover {
-    @apply bg-secondary/50;
-  }
-
-  .nav-link {
-    @apply flex items-center gap-3 px-4 py-3 rounded-lg text-muted-foreground transition-all duration-200 hover:bg-secondary hover:text-foreground;
-  }
-
-  .nav-link-active {
-    @apply bg-primary/10 text-primary border-l-2 border-primary;
-  }
-
-  .page-header {
-    @apply text-2xl font-bold text-foreground mb-6;
-  }
-
-  .form-section {
-    @apply bg-card rounded-xl p-6 border border-border;
-  }
-}
-
-@layer utilities {
-  .gradient-text {
-    background: var(--gradient-primary);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-
-  .shadow-glow {
-    box-shadow: 0 0 20px hsl(217 91% 60% / 0.15);
-  }
-
-  .animate-pulse-slow {
-    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    font-family:
+      "Inter",
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      Roboto,
+      sans-serif;
   }
 }
