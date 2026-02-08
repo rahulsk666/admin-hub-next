@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react";
-import { Plus, Search, Car, Pencil } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Plus, Search, Car, Pencil, Signal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { StatusBadge } from "@/components/ui/status-badge";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
@@ -21,37 +20,20 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Database } from "@/integrations/supabase/types";
-
 import { ImageUpload } from "@/components/ImageUploadV1";
-
-interface Vehicle {
-  id: string;
-  vehicle_number: string;
-  vehicle_type: string;
-  is_active: boolean;
-  created_at: string;
-  image_url: string;
-}
-
-const vehicleTypes = [
-  "Sedan",
-  "SUV",
-  "Truck",
-  "Van",
-  "Ford Transit",
-  "Pickup",
-  "Bus",
-  "Motorcycle",
-  "Other",
-];
+import VehicleCard from "@/components/VehicleCard";
+import { Vehicle, vehicleTypes } from "@/types/vehicleType";
 
 type vehicleInsert = Database["public"]["Tables"]["vehicles"]["Insert"];
 type vehicleUpdate = Database["public"]["Tables"]["vehicles"]["Update"];
 
 export default function Vehicles() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [nextPage, setNextPage] = useState(false);
+  const [pagenum, setPagenum] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [formData, setFormData] = useState({
     vehicle_number: "",
@@ -60,26 +42,87 @@ export default function Vehicles() {
   });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [vehicleImage, setVehicleImage] = useState<File | null>(null);
+  const itemSize = 9;
+  const intersectionObserver = useRef<IntersectionObserver | null>(null);
+
+  const lastVehicleRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      if (loading) return;
+      if (intersectionObserver.current)
+        intersectionObserver.current.disconnect();
+      intersectionObserver.current = new IntersectionObserver((vehicles) => {
+        if (vehicles[0].isIntersecting && nextPage) {
+          setPagenum((prev) => prev + 1);
+        }
+      });
+      if (node) {
+        intersectionObserver.current.observe(node);
+      }
+    },
+    [loading, nextPage],
+  );
+
+  const fetchVehicles = useCallback(
+    async (controller: AbortController) => {
+      setLoading(true);
+      const from = pagenum * itemSize;
+      const to = from + itemSize - 1;
+      try {
+        let query = supabase
+          .from("vehicles")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .range(from, to)
+          .abortSignal(controller.signal);
+
+        if (debouncedSearch.trim()) {
+          query = query.or(
+            `vehicle_number.ilike.%${debouncedSearch}%,vehicle_type.ilike.%${debouncedSearch}%`,
+          );
+        }
+
+        const { data, error } = await query;
+
+        if (error) throw error;
+        setVehicles((prev) => [...prev, ...data]);
+        setNextPage(Boolean(data.length === itemSize));
+      } catch (error) {
+        if (controller.signal.aborted) return;
+        console.error("Error fetching vehicles:", error);
+        toast.error("Failed to load vehicles");
+      } finally {
+        setLoading(false);
+      }
+    },
+    [pagenum, debouncedSearch, itemSize],
+  );
 
   useEffect(() => {
-    fetchVehicles();
-  }, []);
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
-  async function fetchVehicles() {
-    try {
-      const { data, error } = await supabase
-        .from("vehicles")
-        .select("*")
-        .order("created_at", { ascending: false });
+  useEffect(() => {
+    setVehicles([]);
+    setPagenum(0);
+    setNextPage(true);
+  }, [debouncedSearch]);
 
-      if (error) throw error;
-      setVehicles(data || []);
-    } catch (error) {
-      console.error("Error fetching vehicles:", error);
-      toast.error("Failed to load vehicles");
-    } finally {
-      setLoading(false);
-    }
+  useEffect(() => {
+    const controller = new AbortController();
+    fetchVehicles(controller);
+
+    return () => {
+      controller.abort();
+    };
+  }, [pagenum, fetchVehicles]);
+
+  function refreshVehicles() {
+    setVehicles([]);
+    setPagenum(0);
+    setNextPage(true);
   }
 
   function handleOpenAddDialog() {
@@ -173,7 +216,7 @@ export default function Vehicles() {
       setDialogOpen(false);
       setFormData({ vehicle_number: "", vehicle_type: "", image_url: "" });
       setVehicleImage(null);
-      fetchVehicles();
+      refreshVehicles();
     } catch (error) {
       if (error && error.code == 23505) {
         toast.error("Vehicle with this number already exists");
@@ -195,21 +238,15 @@ export default function Vehicles() {
       toast.success(
         `Vehicle marked as ${currentStatus ? "unavailable" : "available"}`,
       );
-      fetchVehicles();
+      // fetchVehicles();
     } catch (error) {
       console.error("Error updating vehicle:", error);
       toast.error("Failed to update vehicle status");
     }
   }
 
-  const filteredVehicles = vehicles.filter(
-    (v) =>
-      v.vehicle_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      v.vehicle_type.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
-
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 overflow-hidden">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="page-header">Vehicles</h1>
@@ -222,7 +259,7 @@ export default function Vehicles() {
       </div>
 
       {/* Search */}
-      <div className="relative max-w-md">
+      <div className="relative max-w-md pl-1">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
         <Input
           placeholder="Search vehicles..."
@@ -233,12 +270,31 @@ export default function Vehicles() {
       </div>
 
       {/* Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {loading ? (
-          <div className="col-span-full text-center py-8 text-muted-foreground">
-            Loading vehicles...
-          </div>
-        ) : filteredVehicles.length === 0 ? (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 scroll-auto overflow-scroll">
+        {vehicles &&
+          vehicles.map((vehicle, i) => {
+            if (vehicles.length === i + 1) {
+              return (
+                <VehicleCard
+                  key={vehicle.id}
+                  ref={lastVehicleRef}
+                  vehicle={vehicle}
+                  toggleVehicleStatus={toggleVehicleStatus}
+                  handleOpenEditDialog={handleOpenEditDialog}
+                />
+              );
+            } else {
+              return (
+                <VehicleCard
+                  key={vehicle.id}
+                  vehicle={vehicle}
+                  toggleVehicleStatus={toggleVehicleStatus}
+                  handleOpenEditDialog={handleOpenEditDialog}
+                />
+              );
+            }
+          })}
+        {vehicles.length === 0 && (
           <div className="col-span-full text-center py-12">
             <Car className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
             <p className="text-muted-foreground">
@@ -247,67 +303,11 @@ export default function Vehicles() {
                 : "No vehicles yet. Add your first vehicle to get started."}
             </p>
           </div>
-        ) : (
-          filteredVehicles.map((vehicle) => (
-            <div key={vehicle.id} className="stat-card animate-fade-in">
-              <div className="flex items-end justify-center"></div>
-              <div className="flex items-start justify-center mb-4">
-                {vehicle.image_url ? (
-                  <img
-                    src={vehicle.image_url}
-                    alt="vehicle image"
-                    className="h-52 w-80 object-contain"
-                  />
-                ) : (
-                  <div className="stat-icon h-52 w-80">
-                    <Car className="w-44 h-44 text-primary-foreground" />
-                  </div>
-                )}
-              </div>
-              <div className="flex flex-row justify-between">
-                <div>
-                  <h3 className="text-lg font-semibold text-foreground mb-1">
-                    {vehicle.vehicle_number.toUpperCase()}
-                  </h3>
-                  <p className="text-muted-foreground text-sm mb-4">
-                    {vehicle.vehicle_type}
-                  </p>
-                </div>
-                <div className="flex flex-row items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-16 text-muted-foreground hover:text-foreground"
-                    onClick={() => handleOpenEditDialog(vehicle)}
-                  >
-                    <Pencil className="w-4 h-4" />
-                  </Button>
-                  <StatusBadge
-                    status={vehicle.is_active ? "active" : "inactive"}
-                    label={vehicle.is_active ? "Available" : "Unavailable"}
-                  />
-                </div>
-              </div>
-              <div className="flex items-center justify-between pt-4 border-t border-border">
-                <span className="text-xs text-muted-foreground">
-                  Added {new Date(vehicle.created_at).toLocaleDateString()}
-                </span>
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() =>
-                      toggleVehicleStatus(vehicle.id, vehicle.is_active)
-                    }
-                  >
-                    {vehicle.is_active
-                      ? "Mark as Unavailable"
-                      : "Mark as Available"}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          ))
+        )}
+        {loading && (
+          <div className="col-span-full text-center py-8 text-muted-foreground">
+            Loading vehicles...
+          </div>
         )}
       </div>
 
