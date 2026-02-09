@@ -23,6 +23,7 @@ import { Database } from "@/integrations/supabase/types";
 import { ImageUpload } from "@/components/ImageUploadV1";
 import VehicleCard from "@/components/VehicleCard";
 import { Vehicle, vehicleTypes } from "@/types/vehicleType";
+import VehicleCardSkeleton from "@/components/VehicleCardSkeleton";
 
 type vehicleInsert = Database["public"]["Tables"]["vehicles"]["Insert"];
 type vehicleUpdate = Database["public"]["Tables"]["vehicles"]["Update"];
@@ -41,6 +42,7 @@ export default function Vehicles() {
     image_url: "",
   });
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [refreshCount, setRefreshCount] = useState(0);
   const [vehicleImage, setVehicleImage] = useState<File | null>(null);
   const itemSize = 9;
   const intersectionObserver = useRef<IntersectionObserver | null>(null);
@@ -84,17 +86,24 @@ export default function Vehicles() {
         const { data, error } = await query;
 
         if (error) throw error;
-        setVehicles((prev) => [...prev, ...data]);
+        if (pagenum === 0) {
+          setVehicles(data);
+        } else {
+          setVehicles((prev) => [...prev, ...data]);
+        }
         setNextPage(Boolean(data.length === itemSize));
+        setLoading(false);
       } catch (error) {
         if (controller.signal.aborted) return;
+        setLoading(false);
         console.error("Error fetching vehicles:", error);
         toast.error("Failed to load vehicles");
-      } finally {
-        setLoading(false);
       }
+      // finally {
+      //   setLoading(false);
+      // }
     },
-    [pagenum, debouncedSearch, itemSize],
+    [pagenum, debouncedSearch, itemSize, refreshCount],
   );
 
   useEffect(() => {
@@ -117,12 +126,13 @@ export default function Vehicles() {
     return () => {
       controller.abort();
     };
-  }, [pagenum, fetchVehicles]);
+  }, [fetchVehicles]);
 
   function refreshVehicles() {
     setVehicles([]);
     setPagenum(0);
     setNextPage(true);
+    setRefreshCount((prev) => prev + 1);
   }
 
   function handleOpenAddDialog() {
@@ -132,7 +142,7 @@ export default function Vehicles() {
     setDialogOpen(true);
   }
 
-  function handleOpenEditDialog(vehicle: Vehicle) {
+  const handleOpenEditDialog = useCallback((vehicle: Vehicle) => {
     setEditingId(vehicle.id);
     setFormData({
       vehicle_number: vehicle.vehicle_number,
@@ -141,7 +151,7 @@ export default function Vehicles() {
     });
     setVehicleImage(null);
     setDialogOpen(true);
-  }
+  }, []);
 
   async function uploadVehicleImage(vehicleId: string) {
     if (!vehicleImage) return formData.image_url;
@@ -209,7 +219,6 @@ export default function Vehicles() {
 
           if (updateError) throw updateError;
         }
-
         toast.success("Vehicle added successfully");
       }
 
@@ -226,24 +235,27 @@ export default function Vehicles() {
     }
   }
 
-  async function toggleVehicleStatus(id: string, currentStatus: boolean) {
-    try {
-      const { error } = await supabase
-        .from("vehicles")
-        .update({ is_active: !currentStatus })
-        .eq("id", id);
+  const toggleVehicleStatus = useCallback(
+    async (id: string, currentStatus: boolean) => {
+      try {
+        const { error } = await supabase
+          .from("vehicles")
+          .update({ is_active: !currentStatus })
+          .eq("id", id);
 
-      if (error) throw error;
+        if (error) throw error;
 
-      toast.success(
-        `Vehicle marked as ${currentStatus ? "unavailable" : "available"}`,
-      );
-      // fetchVehicles();
-    } catch (error) {
-      console.error("Error updating vehicle:", error);
-      toast.error("Failed to update vehicle status");
-    }
-  }
+        toast.success(
+          `Vehicle marked as ${currentStatus ? "unavailable" : "available"}`,
+        );
+        refreshVehicles();
+      } catch (error) {
+        console.error("Error updating vehicle:", error);
+        toast.error("Failed to update vehicle status");
+      }
+    },
+    [],
+  );
 
   return (
     <div className="space-y-6 overflow-hidden">
@@ -270,31 +282,28 @@ export default function Vehicles() {
       </div>
 
       {/* Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 scroll-auto overflow-y-auto max-h-165">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 overflow-y-auto max-h-165">
+        {loading &&
+          pagenum == 0 &&
+          vehicles.length === 0 &&
+          Array.from({ length: 6 }).map((_, index) => (
+            <VehicleCardSkeleton key={index} />
+          ))}
         {vehicles &&
           vehicles.map((vehicle, i) => {
-            if (vehicles.length === i + 1) {
-              return (
-                <VehicleCard
-                  key={vehicle.id}
-                  ref={lastVehicleRef}
-                  vehicle={vehicle}
-                  toggleVehicleStatus={toggleVehicleStatus}
-                  handleOpenEditDialog={handleOpenEditDialog}
-                />
-              );
-            } else {
-              return (
-                <VehicleCard
-                  key={vehicle.id}
-                  vehicle={vehicle}
-                  toggleVehicleStatus={toggleVehicleStatus}
-                  handleOpenEditDialog={handleOpenEditDialog}
-                />
-              );
-            }
+            const isLast = vehicles.length === i + 1;
+
+            return (
+              <VehicleCard
+                key={vehicle.id}
+                ref={isLast ? lastVehicleRef : null}
+                vehicle={vehicle}
+                toggleVehicleStatus={toggleVehicleStatus}
+                handleOpenEditDialog={handleOpenEditDialog}
+              />
+            );
           })}
-        {vehicles.length === 0 && (
+        {!loading && pagenum == 0 && vehicles.length === 0 && searchQuery && (
           <div className="col-span-full text-center py-12">
             <Car className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
             <p className="text-muted-foreground">
@@ -304,11 +313,11 @@ export default function Vehicles() {
             </p>
           </div>
         )}
-        {loading && (
-          <div className="col-span-full text-center py-8 text-muted-foreground">
-            Loading vehicles...
-          </div>
-        )}
+        {loading &&
+          pagenum > 0 &&
+          Array.from({ length: 6 }).map((_, index) => (
+            <VehicleCardSkeleton key={index} />
+          ))}
       </div>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
